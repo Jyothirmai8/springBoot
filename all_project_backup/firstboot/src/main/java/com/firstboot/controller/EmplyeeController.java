@@ -14,6 +14,8 @@ import com.firstboot.dao.EmployeeDAOInterface;
 import com.firstboot.dao.EmployeeDAOInterfaceMongo;
 import com.firstboot.entity.Employee;
 import com.firstboot.entity.EmployeeMongo;
+import com.firstboot.utility.Sender;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 @RestController
 public class EmplyeeController {
@@ -35,9 +37,24 @@ public class EmplyeeController {
 	}
 	
 	@RequestMapping("allEmployeejdbc")
+	@HystrixCommand(fallbackMethod = "userDefinedMethod")
 	public List<Employee> displayAllEmployeejdbc(){
 		List<Employee> el=empdao.getdaoall();
+		if(el.size()>0) {
+			throw new ArithmeticException();
+		}
+		return el;
+	}
+	
+		public List<Employee> userDefinedMethod(){
+		List<Employee> el=new ArrayList<Employee>();
+		Employee e1=new Employee();
+		e1.setName("dafault");
+		e1.setPassword("default");
+		e1.setEmail("default@yahoo.com");
+		e1.setAddress("Bangalore");
 		
+		el.add(e1);
 		return el;
 	}
 	
@@ -74,4 +91,15 @@ public class EmplyeeController {
 		
 		return el;
 	}
+	
+	@Autowired
+	private Sender ss;
+	
+	@RequestMapping("sendmessage")
+	public String sendmessage(){
+		ss.sendmessage("mytopic", "hello i am message comming from employeeservice");
+		
+		return "message sent successfully";
+	}
+
 }
